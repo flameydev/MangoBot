@@ -403,4 +403,5 @@ async def dice(
     embed.set_image(url=gif)
 
     await interaction.response.send_message(embed=embed)
+
 bot.run(TOKEN)
