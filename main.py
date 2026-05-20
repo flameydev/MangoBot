@@ -2,6 +2,8 @@ import discord
 from discord.ext import commands
 from discord import app_commands
 
+from google import genai
+
 import random
 import math
 
@@ -10,8 +12,14 @@ import os
 
 load_dotenv()
 t = os.getenv("TOKEN")
+k = os.getenv("API_KEY")
 if t != None:
     TOKEN = t
+if k != None:
+    KEY = k
+
+client = genai.Client(api_key=KEY)
+MODEL = "gemini-1.5-flash"
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -481,6 +489,35 @@ async def calc(
         await interaction.response.send_message(
             f"❌ Invalid equation: `{e}`", ephemeral=True
         )
+
+#//-- AI SECTION --\\#
+
+#-- ASKAI COMMAND --#
+@bot.tree.command(name="ai", description="Ask something to Gemini 1.5 Flash")
+@app_commands.allowed_contexts(
+    guilds=True,
+    dms=True,
+    private_channels=True
+)
+async def ask(
+    interaction: discord.Interaction,
+    prompt: str
+):
+    response = client.models.generate_content(
+        model=MODEL,
+        contents=prompt,
+    )
+
+    if response:
+        embed = discord.Embed(
+            description=response,
+            color=discord.Color.blurple()
+        )
+        embed.set_footer(text="Gemini 1.5 Flash • Limited to 60 messages a minute • AI Generated response")
+
+        await interaction.response.send_message(embed=embed)
+    else:
+        await interaction.response.send_message(content=f"Failed to generate a response, please try again later.", ephemeral=True)
     
 
 bot.run(TOKEN)
