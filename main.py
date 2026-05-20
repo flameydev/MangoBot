@@ -1,7 +1,9 @@
 import discord
-import random
 from discord.ext import commands
 from discord import app_commands
+
+import random
+import math
 
 from dotenv import load_dotenv
 import os
@@ -298,9 +300,11 @@ async def dadjoke(
         f"😂 " + joke
     )
 
+##//-- ROLEPLAY COMMANDS --\\##
+
 #-- SHOOT COMMAND --#
 
-@bot.tree.command(name="shoot", description="Shoot someone")
+@bot.tree.command(name="rp shoot", description="Shoot someone")
 @app_commands.allowed_contexts(
     guilds=True,
     dms=True,
@@ -321,6 +325,33 @@ async def shoot(
     chosen = random.choice(gifs)
     embed = discord.Embed(
         description=f"{interaction.user.mention} just shot {user.mention}! 🔫",
+        color=discord.Color.blurple()
+    )
+    embed.set_image(url=chosen)
+    await interaction.response.send_message(embed=embed)
+
+#-- SLAP COMMAND --#
+
+@bot.tree.command(name="rp slap", description="Slap someone")
+@app_commands.allowed_contexts(
+    guilds=True,
+    dms=True,
+    private_channels=True
+)
+async def slap(
+    interaction: discord.Interaction,
+    user: discord.User
+):
+    gifs = [
+        "https://media.tenor.com/KC56LsHlsY0AAAAC/cats-cat-slap.gif",
+        "https://media.tenor.com/MXZGFeabIIwAAAAC/taiga-toradora.gif",
+        "https://media.tenor.com/W2QqtV4k6ykAAAAC/orange-cat-cat-hitting-cat.gif",
+        "https://media.tenor.com/eU5H6GbVjrcAAAAC/slap-jjk.gif",
+        "https://media.tenor.com/HTHoXnBc400AAAAC/in-your-face-slap.gif"
+    ]
+    chosen = random.choice(gifs)
+    embed = discord.Embed(
+        description=f"{interaction.user.mention} just slapped {user.mention}! 🤚",
         color=discord.Color.blurple()
     )
     embed.set_image(url=chosen)
@@ -403,5 +434,53 @@ async def dice(
     embed.set_image(url=gif)
 
     await interaction.response.send_message(embed=embed)
+
+#-- CALCULATE COMMAND--#
+@bot.tree.command(name="calc", description="Calculate something")
+@app_commands.allowed_contexts(
+    guilds=True,
+    dms=True,
+    private_channels=True
+)
+async def calc(
+    interaction: discord.Interaction,
+    equation: str
+):
+    import re
+
+    # Safe evaluation using a restricted environment
+    allowed_names = {
+        k: v for k, v in math.__dict__.items() if not k.startswith("__")
+    }
+    allowed_names.update({"abs": abs, "round": round, "min": min, "max": max})
+
+    # Block any unsafe characters/keywords
+    blocked = ["import", "exec", "eval", "open", "os", "sys", "__"]
+    for word in blocked:
+        if word in equation.lower():
+            await interaction.response.send_message(
+                "❌ That equation contains disallowed terms.", ephemeral=True
+            )
+            return
+
+    try:
+        # Replace ^ with ** for exponentiation
+        sanitized = equation.replace("^", "**")
+
+        result = eval(sanitized, {"__builtins__": {}}, allowed_names)
+
+        await interaction.response.send_message(
+            f"🧮 **Equation:** `{equation}`\n📊 **Result:** `{result}`"
+        )
+
+    except ZeroDivisionError:
+        await interaction.response.send_message(
+            "❌ Division by zero is undefined.", ephemeral=True
+        )
+    except Exception as e:
+        await interaction.response.send_message(
+            f"❌ Invalid equation: `{e}`", ephemeral=True
+        )
+    
 
 bot.run(TOKEN)
