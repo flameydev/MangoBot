@@ -304,7 +304,7 @@ async def dadjoke(
 
 #-- SHOOT COMMAND --#
 
-@bot.tree.command(name="rp shoot", description="Shoot someone")
+@bot.tree.command(name="shoot", description="Shoot someone")
 @app_commands.allowed_contexts(
     guilds=True,
     dms=True,
@@ -332,7 +332,7 @@ async def shoot(
 
 #-- SLAP COMMAND --#
 
-@bot.tree.command(name="rp slap", description="Slap someone")
+@bot.tree.command(name="slap", description="Slap someone")
 @app_commands.allowed_contexts(
     guilds=True,
     dms=True,
