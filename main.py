@@ -328,7 +328,9 @@ async def shoot(
         "https://media.tenor.com/4vm4NhESp5IAAAAC/kermit-gun.gif",
         "https://media.tenor.com/MkeUMFTlVNcAAAAC/delete-kar.gif",
         "https://media.tenor.com/ABxjgSX8p4YAAAAC/cat-gun.gif",
-        "https://media.tenor.com/i3ijQxePt_cAAAAC/gun-gif.gif"
+        "https://media.tenor.com/i3ijQxePt_cAAAAC/gun-gif.gif",
+        "https://media.tenor.com/SSUL40mibXwAAAAC/yangyangpls.gif",
+        "https://media.tenor.com/rPUs2bveMucAAAAC/tutorial-terry-tutorial.gif"
     ]
     chosen = random.choice(gifs)
     embed = discord.Embed(
@@ -355,7 +357,8 @@ async def slap(
         "https://media.tenor.com/MXZGFeabIIwAAAAC/taiga-toradora.gif",
         "https://media.tenor.com/W2QqtV4k6ykAAAAC/orange-cat-cat-hitting-cat.gif",
         "https://media.tenor.com/eU5H6GbVjrcAAAAC/slap-jjk.gif",
-        "https://media.tenor.com/HTHoXnBc400AAAAC/in-your-face-slap.gif"
+        "https://media.tenor.com/HTHoXnBc400AAAAC/in-your-face-slap.gif",
+        "https://media.tenor.com/SQ1N_QKllQQAAAAC/penguin-slap.gif"
     ]
     chosen = random.choice(gifs)
     embed = discord.Embed(
@@ -438,7 +441,7 @@ async def dice(
         description=f"The dice landed on **{rolled}**!",
         color=discord.Color.blurple()
     )
-    embed.set_footer(text=f"Dice Roll requested by {interaction.user.display_name}")
+    embed.set_footer(text=f"Dice Roll requested by {interaction.user.display_name} with {sides} sides")
     embed.set_image(url=gif)
 
     await interaction.response.send_message(embed=embed)
@@ -454,7 +457,6 @@ async def calc(
     interaction: discord.Interaction,
     equation: str
 ):
-    import re
 
     # Safe evaluation using a restricted environment
     allowed_names = {
@@ -499,7 +501,7 @@ async def calc(
     dms=True,
     private_channels=True
 )
-async def ask(
+async def ai(
     interaction: discord.Interaction,
     prompt: str
 ):
@@ -513,7 +515,7 @@ async def ask(
             description=response,
             color=discord.Color.blurple()
         )
-        embed.set_footer(text="Gemini 1.5 Flash • Limited to 60 messages a minute • AI Generated response")
+        embed.set_footer(text="Gemini 1.5 Flash • AI Generated response")
 
         await interaction.response.send_message(embed=embed)
     else:

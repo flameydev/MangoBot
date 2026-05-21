@@ -1,7 +1,6 @@
-<p align="center">
-<h1>MangoBot</h1>
-Source code for my Discord bot called MangoBot. Feel free to use it to make your own bot.
-</p>
+# MangoBot
+
+Source code for my Discord bot. Feel free to make your own out of it!
 
 ## Make your Own Bot
 
