@@ -11,12 +11,8 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-t = os.getenv("TOKEN")
-k = os.getenv("GEMINI_API_KEY")
-if t != None:
-    TOKEN = t
-if k != None:
-    KEY = k
+TOKEN = os.getenv("TOKEN")
+KEY = os.getenv("GEMINI_API_KEY")
 
 client = genai.Client(api_key=KEY)
 MODEL = "gemini-2.0-flash"
@@ -603,21 +599,42 @@ async def ai(
     prompt: str
 ):
 
-    response = client.models.generate_content(
-        model=f"models/{MODEL}",
-        contents=prompt
-    )
+    await interaction.response.defer()  # prevents timeout
 
-    if response:
+    try:
+        response = client.models.generate_content(
+            model=MODEL,
+            contents=prompt
+        )
+
+        text = response.text
+
+        if not text:
+            await interaction.followup.send(
+                "❌ Gemini returned an empty response.",
+                ephemeral=True
+            )
+            return
+
+        # Discord embed description limit = 4096 chars
+        if len(text) > 4000:
+            text = text[:4000] + "..."
+
         embed = discord.Embed(
-            description=response,
+            title="🤖 Gemini AI",
+            description=text,
             color=discord.Color.blurple()
         )
-        embed.set_footer(text="Gemini 2.0 Flash • AI Generated response")
 
-        await interaction.response.send_message(embed=embed)
-    else:
-        await interaction.response.send_message(content=f"Failed to generate a response, please try again later.", ephemeral=True)
+        embed.set_footer(text="Gemini 2.0 Flash")
+
+        await interaction.followup.send(embed=embed)
+
+    except Exception as e:
+        await interaction.followup.send(
+            f"❌ Error: `{e}`",
+            ephemeral=True
+        )
     
 
 bot.run(TOKEN)
