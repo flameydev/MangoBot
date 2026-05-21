@@ -56,7 +56,11 @@ async def roast(interaction: discord.Interaction, member: discord.User):
         f"it has been approximately 931 days since {member.mention} last showered 🚿",
         f"go touch some grass {member.mention} 🙏",
         f"job applications be sitting around the campfire telling stories about {member.mention} 👻",
-        f"{member.mention} yo mom really took 9 months to make a joke 🥀"
+        f"{member.mention} yo mom really took 9 months to make a joke 🥀",
+        f"{member.mention} put the fries in the bag lil bro 🍟",
+        f"if you ever feel useless, just remember {member.mention} exists 😭",
+        f"{member.mention} go look in the mirror 🪞",
+        f"i am running out of ways to roast you, {member.mention} 🔥"
     ]
 
     await interaction.response.send_message(
@@ -113,7 +117,10 @@ async def compliment(interaction: discord.Interaction, member: discord.User):
         f"{member.mention} go show them what you GOT! 😤",
         f"have a good day, {member.mention} 😁",
         f"{member.mention} good job today! 💯",
-        f"take a break, {member.mention} ☺️"
+        f"take a break, {member.mention} ☺️",
+        f"you look amazing, {member.mention}! 🪞",
+        f"{member.mention} the gifted 🎁",
+        f"you are 1 in a million, {member.mention}! ✨"
     ]
 
     await interaction.response.send_message(
@@ -135,16 +142,16 @@ async def compliment(interaction: discord.Interaction, member: discord.User):
 async def birthday(
     interaction: discord.Interaction,
     member: discord.User,
-    turning: int | None = None
+    age: int | None = None
 ):
 
-    if turning is None:
+    if age is None:
         await interaction.response.send_message(
             f"🎂 Happy Birthday, {member.mention}!"
         )
     else:
         await interaction.response.send_message(
-            f"🎂 Happy Birthday {member.mention}, turning {turning}!"
+            f"🎂 Happy Birthday {member.mention}, turning {age}!"
         )
 
 #-- SAY COMMAND --#
@@ -156,11 +163,12 @@ async def birthday(
 @bot.tree.command(name="say", description="Make the bot say something")
 async def say(
     interaction: discord.Interaction,
-    message: str
+    message: str,
 ):
     await interaction.response.send_message(
-        message
+        message.capitalize()
     )
+
 
 #-- AVATAR COMMAND --#
 @app_commands.allowed_contexts(
@@ -177,9 +185,10 @@ async def avatar(
 
     embed = discord.Embed(
         title=f"{user.display_name}'s Avatar",
-        color=discord.Color.green()
+        color=discord.Color.blurple()
     )
     embed.set_image(url=avatar.url)
+    embed.set_footer(text="/avatar")
 
     await interaction.response.send_message(embed=embed)
 
@@ -264,7 +273,7 @@ async def ball(
         "Sure. Why not?",
         "Probably Not",
         "I don't know",
-        "Do what your heart says",
+        "DEFINITELY",
     ]
 
     choice = random.choice(responses)
@@ -288,18 +297,106 @@ async def dadjoke(
     interaction: discord.Interaction,
 ):
     dadjokes = [
-        "What did the ocean say to the beach? Nothing, it just waved",
+        "What did the ocean say to the beach? Nothing, it just waved.",
         "I only know 25 letters in the alphabet, I don't know Y!",
-        "Why don't skeletons fight each other? They don't have the guts",
-        "What do you call fake spaghetti? An impasta",
+        "Why don't skeletons fight each other? They don't have the guts.",
+        "What do you call fake spaghetti? An impasta.",
         "Why don't scientists trust atoms? They make up everything!",
-        "What do you call cheese that isn't yours? Nacho Cheese!",
+        "What do you call cheese that isn't yours? Nacho cheese!",
         "What's brown and sticky? A stick. What did you think it was?",
         "Why did the golfer bring two pairs of pants? In case he got a hole in one.",
         "Why are elevator jokes so good? They work on many levels.",
         "What do you call a fish wearing a bowtie? Sofishticated.",
         "Why did the coffee file a police report? It got mugged.",
-        "Why can't eggs tell jokes? They'd crack each other up."
+        "Why can't eggs tell jokes? They'd crack each other up.",
+        "Why did the scarecrow win an award? Because he was outstanding in his field.",
+        "What do you call a bear with no teeth? A gummy bear.",
+        "Why did the math book look sad? It had too many problems.",
+        "Why don't oysters donate to charity? Because they're shellfish.",
+        "What do you call a sleeping bull? A bulldozer.",
+        "Why couldn't the bicycle stand up by itself? It was two tired.",
+        "Why did the tomato blush? Because it saw the salad dressing.",
+        "What do you call a factory that makes okay products? A satisfactory.",
+        "Why did the computer go to therapy? It had too many bytes from the past.",
+        "Why did the cookie go to the doctor? Because it felt crummy.",
+        "What kind of shoes do ninjas wear? Sneakers.",
+        "What do you call a cow with no legs? Ground beef.",
+        "Why don't programmers like nature? Too many bugs.",
+        "What do you call a dinosaur with an extensive vocabulary? A thesaurus.",
+        "Why did the banana go to the hospital? It wasn't peeling well.",
+        "Why did the student eat his homework? The teacher said it was a piece of cake.",
+        "What do you call an alligator in a vest? An investigator.",
+        "Why was the broom late? It swept in.",
+        "Why did the chicken join a band? Because it had the drumsticks.",
+        "What do you call a pile of cats? A meowtain.",
+        "Why are ghosts bad liars? Because you can see right through them.",
+        "What do you call a boomerang that won't come back? A stick.",
+        "Why did the orange stop rolling? It ran out of juice.",
+        "What did one wall say to the other wall? I'll meet you at the corner.",
+        "Why was the belt arrested? For holding up the pants.",
+        "Why did the man put his money in the freezer? He wanted cold hard cash.",
+        "What did the janitor say when he jumped out of the closet? Supplies!",
+        "Why don't seagulls fly over the bay? Because then they'd be bagels.",
+        "Why was the stadium so cool? It was filled with fans.",
+        "What do you call a snowman with a six-pack? An abdominal snowman.",
+        "Why did the frog take the bus to work? His car got toad away.",
+        "What do you call a dog magician? A labracadabrador.",
+        "Why did the duck get promoted? Because he was always quacking good ideas.",
+        "What did the grape do when it got stepped on? Nothing, it just let out a little wine.",
+        "Why can't your nose be 12 inches long? Because then it would be a foot.",
+        "What do you call a nervous javelin thrower? Shakespeare.",
+        "Why did the barber win the race? He knew a shortcut.",
+        "What do you call a lazy kangaroo? A pouch potato.",
+        "Why do cows wear bells? Because their horns don't work.",
+        "What kind of tree fits in your hand? A palm tree.",
+        "Why did the invisible man turn down the job offer? He couldn't see himself doing it.",
+        "What do you call a magical dog? A labracadabrador.",
+        "Why don't crabs give to charity? Because they're shellfish.",
+        "Why did the music teacher need a ladder? To reach the high notes.",
+        "What do you call a can opener that doesn't work? A can't opener.",
+        "Why was the calendar afraid? Its days were numbered.",
+        "Why did the smartphone need glasses? It lost its contacts.",
+        "Why don't mountains get cold in winter? They wear snowcaps.",
+        "What did the buffalo say to his son when he left? Bison.",
+        "Why are fish so smart? Because they live in schools.",
+        "What do you call an elephant that doesn't matter? An irrelephant.",
+        "Why did the melon jump into the lake? It wanted to be a watermelon.",
+        "What kind of music do balloons hate? Pop music.",
+        "Why was the computer cold? It left its Windows open.",
+        "Why did the teddy bear skip dessert? Because it was stuffed.",
+        "What do you call a pig that does karate? A pork chop.",
+        "Why did the lamp get detention? It wasn't too bright.",
+        "What do you call a bee that can't make up its mind? A maybe.",
+        "Why was the pencil feeling down? It had no point.",
+        "What did one plate say to the other plate? Dinner's on me.",
+        "Why do ducks have feathers? To cover their buttquacks.",
+        "Why did the pirate buy an eye patch? Because he couldn't afford an iPad.",
+        "What do you call a deer with no eyes? No eye deer.",
+        "Why did the robot go on vacation? It needed to recharge.",
+        "What do you call a fly without wings? A walk.",
+        "Why was the keyboard always exhausted? It had too many shifts.",
+        "Why don't sharks eat clowns? Because they taste funny.",
+        "What do you call a sheep covered in chocolate? A candy baa.",
+        "Why did the light bulb fail school? It wasn't too bright.",
+        "What did the left eye say to the right eye? Between us, something smells.",
+        "Why was the pillow so calm? It knew how to rest easy.",
+        "What do you call a rabbit with fleas? Bugs Bunny.",
+        "Why did the baker go broke? He kneaded dough.",
+        "What do you call a cow during an earthquake? A milkshake.",
+        "Why don't ants get sick? Because they have tiny anty-bodies.",
+        "Why did the photo go to jail? Because it was framed.",
+        "What do you call a duck that steals? A robber ducky.",
+        "Why did the clock get kicked out? It kept tocking back.",
+        "Why are frogs so happy? They eat whatever bugs them.",
+        "What do you call a potato wearing glasses? A spectator.",
+        "Why did the cat sit on the computer? To keep an eye on the mouse.",
+        "Why did the barber become a gardener? He wanted to cut hedges instead.",
+        "What do you call a train carrying bubblegum? A chew chew train.",
+        "Why did the cupcake go to school? To become a smartie cake.",
+        "Why don't vampires like BBQ sauce? They prefer blood mustard.",
+        "What do you call a sleeping pizza? A piZZZZa.",
+        "Why did the spoon quit its job? It got stirred up too often.",
+        "What kind of car does a sheep drive? A Lamborghini."
     ]
 
     joke = random.choice(dadjokes)
