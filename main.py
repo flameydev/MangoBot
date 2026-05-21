@@ -19,7 +19,7 @@ if k != None:
     KEY = k
 
 client = genai.Client(api_key=KEY)
-MODEL = "gemini-2.5-flash"
+MODEL = "gemini-2.0-flash"
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -495,7 +495,7 @@ async def calc(
 #//-- AI SECTION --\\#
 
 #-- ASKAI COMMAND --#
-@bot.tree.command(name="ai", description="Ask something to Gemini 2.5 Flash")
+@bot.tree.command(name="ai", description="Ask something to Gemini 2.0 Flash")
 @app_commands.allowed_contexts(
     guilds=True,
     dms=True,
@@ -505,9 +505,10 @@ async def ai(
     interaction: discord.Interaction,
     prompt: str
 ):
+
     response = client.models.generate_content(
-        model=MODEL,
-        contents=prompt,
+        model=f"models/{MODEL}",
+        contents=prompt
     )
 
     if response:
@@ -515,7 +516,7 @@ async def ai(
             description=response,
             color=discord.Color.blurple()
         )
-        embed.set_footer(text="Gemini 1.5 Flash • AI Generated response")
+        embed.set_footer(text="Gemini 2.0 Flash • AI Generated response")
 
         await interaction.response.send_message(embed=embed)
     else:
