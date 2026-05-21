@@ -495,7 +495,7 @@ async def calc(
 #//-- AI SECTION --\\#
 
 #-- ASKAI COMMAND --#
-@bot.tree.command(name="ai", description="Ask something to Gemini 1.5 Flash")
+@bot.tree.command(name="ai", description="Ask something to Gemini 2.5 Flash")
 @app_commands.allowed_contexts(
     guilds=True,
     dms=True,
