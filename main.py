@@ -12,14 +12,14 @@ import os
 
 load_dotenv()
 t = os.getenv("TOKEN")
-k = os.getenv("API_KEY")
+k = os.getenv("GEMINI_API_KEY")
 if t != None:
     TOKEN = t
 if k != None:
     KEY = k
 
 client = genai.Client(api_key=KEY)
-MODEL = "gemini-1.5-flash"
+MODEL = "gemini-2.5-flash"
 
 intents = discord.Intents.default()
 intents.message_content = True
