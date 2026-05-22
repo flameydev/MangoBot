@@ -163,7 +163,7 @@ async def say(
     message: str,
 ):
     await interaction.response.send_message(
-        message.capitalize()
+        message
     )
 
 
