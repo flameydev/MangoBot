@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-TOKEN = os.getenv("TOKEN")
+TOKEN = os.getenv("TOKEN") or ""
 KEY = os.getenv("GEMINI_API_KEY")
 
 client = genai.Client(api_key=KEY)
