@@ -6,6 +6,7 @@ from google import genai
 
 import random
 import math
+import re
 
 from dotenv import load_dotenv
 import os
@@ -539,8 +540,8 @@ async def dice(
 
     await interaction.response.send_message(embed=embed)
 
-#-- CALCULATE COMMAND--#
-@bot.tree.command(name="calc", description="Calculate something")
+#-- CALCULATE COMMAND --#
+@bot.tree.command(name="calc", description="Calculate a math expression")
 @app_commands.allowed_contexts(
     guilds=True,
     dms=True,
@@ -550,7 +551,6 @@ async def calc(
     interaction: discord.Interaction,
     equation: str
 ):
-
     # Safe evaluation using a restricted environment
     allowed_names = {
         k: v for k, v in math.__dict__.items() if not k.startswith("__")
@@ -567,23 +567,113 @@ async def calc(
             return
 
     try:
-        # Replace ^ with ** for exponentiation
-        sanitized = equation.replace("^", "**")
+        sanitized = equation.strip()
 
-        result = eval(sanitized, {"__builtins__": {}}, allowed_names)
+        # Replace ^ with ** for exponentiation
+        sanitized = sanitized.replace("^", "**")
+
+        # Replace "n of x" with "n * x" (case-insensitive)
+        # e.g. "5 of 3", "5of3", "5 of3" → "5 * 3"
+        sanitized = re.sub(r'(\d+(?:\.\d+)?)\s*of\s*(\d+(?:\.\d+)?)', r'\1 * \2', sanitized, flags=re.IGNORECASE)
+
+        # Replace factorials: n! → math.factorial(n)
+        # Handles integers and floats, though factorial only works on non-negative integers
+        def replace_factorial(match):
+            num = match.group(1)
+            # Strip trailing dot if float-like but whole (e.g. "3.")
+            num_val = num.rstrip(".")
+            return f"math.factorial(int({num_val}))"
+
+        sanitized = re.sub(r'(\d+\.?\d*)\s*!', replace_factorial, sanitized)
+
+        result = eval(sanitized, {"__builtins__": {}, "math": math}, allowed_names)
+
+        # Format result: show int if result is a whole number
+        formatted = int(result) if isinstance(result, float) and result.is_integer() else result
 
         await interaction.response.send_message(
-            f"🧮 **Equation:** `{equation}`\n📊 **Result:** `{result}`"
+            f"🧮 **Equation:** `{equation}`\n📊 **Result:** `{formatted}`"
         )
 
     except ZeroDivisionError:
         await interaction.response.send_message(
             "❌ Division by zero is undefined.", ephemeral=True
         )
+    except ValueError as e:
+        await interaction.response.send_message(
+            f"❌ Math error: `{e}`", ephemeral=True
+        )
     except Exception as e:
         await interaction.response.send_message(
             f"❌ Invalid equation: `{e}`", ephemeral=True
         )
+
+
+#-- CALC HELP COMMAND --#
+@bot.tree.command(name="calchelp", description="How to use the /calc command")
+@app_commands.allowed_contexts(
+    guilds=True,
+    dms=True,
+    private_channels=True
+)
+async def calchelp(interaction: discord.Interaction):
+    embed = discord.Embed(
+        title="🧮 Calculator Help",
+        description="Use `/calc` to evaluate math expressions.",
+        color=discord.Color.blurple()
+    )
+
+    embed.add_field(
+        name="➕ Basic Arithmetic",
+        value=(
+            "`1 + 2` → 3\n"
+            "`10 - 4` → 6\n"
+            "`6 * 7` → 42\n"
+            "`9 / 2` → 4.5\n"
+            "`9 // 2` → 4 *(floor division)*\n"
+            "`10 % 3` → 1 *(remainder)*"
+        ),
+        inline=False
+    )
+    embed.add_field(
+        name="🔢 Exponents & Roots",
+        value=(
+            "`2 ^ 8` or `2 ** 8` → 256\n"
+            "`sqrt(16)` → 4\n"
+            "`pow(2, 10)` → 1024"
+        ),
+        inline=False
+    )
+    embed.add_field(
+        name="❗ Factorials",
+        value=(
+            "`5!` → 120\n"
+            "`3!` → 6 *(3 × 2 × 1)*"
+        ),
+        inline=False
+    )
+    embed.add_field(
+        name="✖️ \"N of X\"",
+        value=(
+            "`5 of 3` → 15 *(same as 5 × 3)*\n"
+            "`2 of 50` → 100"
+        ),
+        inline=False
+    )
+    embed.add_field(
+        name="📐 Math Functions",
+        value=(
+            "`sin(x)`, `cos(x)`, `tan(x)`\n"
+            "`log(x)`, `log10(x)`, `log2(x)`\n"
+            "`ceil(x)`, `floor(x)`, `abs(x)`\n"
+            "`round(x)`, `min(x, y)`, `max(x, y)`\n"
+            "`pi` → 3.14159...  |  `e` → 2.71828..."
+        ),
+        inline=False
+    )
+    embed.set_footer(text="Unsafe functions like exec, eval, import, etc. are blocked.")
+
+    await interaction.response.send_message(embed=embed, ephemeral=True)
 
 #//-- AI SECTION --\\#
 
