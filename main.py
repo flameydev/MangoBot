@@ -678,7 +678,7 @@ async def calchelp(interaction: discord.Interaction):
 
 #//-- AI SECTION --\\#
 
-#-- ASKAI COMMAND --#
+#-- AI COMMAND --#
 cooldowns = {}
 
 @bot.tree.command(name="ai", description="Ask something to Gemini")
@@ -728,7 +728,7 @@ async def ai(interaction: discord.Interaction, prompt: str):
             color=discord.Color.blurple()
         )
 
-        embed.set_footer(text="Result is AI Generated")
+        embed.set_footer(text="[ AI Generated response - Using Gemini 2.5 Flash - MangoBot /ai ]")
 
         await interaction.followup.send(embed=embed)
 
@@ -740,6 +740,10 @@ async def ai(interaction: discord.Interaction, prompt: str):
                 ephemeral=True
             )
             return
+        elif "503" in str(e):
+            await interaction.followup.send(
+                "⚠️ Gemini is experiencing high demand at this moment. Please wait or try again later."
+            )
 
         await interaction.followup.send(
             f"❌ Error: `{e}`",
