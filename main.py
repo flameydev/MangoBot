@@ -7,6 +7,7 @@ from google import genai
 import random
 import math
 import re
+import time
 
 from dotenv import load_dotenv
 import os
@@ -16,7 +17,7 @@ TOKEN = os.getenv("TOKEN") or ""
 KEY = os.getenv("GEMINI_API_KEY")
 
 client = genai.Client(api_key=KEY)
-MODEL = "gemini-2.0-flash"
+MODEL = "gemini-2.5-flash"
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -678,18 +679,31 @@ async def calchelp(interaction: discord.Interaction):
 #//-- AI SECTION --\\#
 
 #-- ASKAI COMMAND --#
-@bot.tree.command(name="ai", description="Ask something to Gemini 2.0 Flash")
+cooldowns = {}
+
+@bot.tree.command(name="ai", description="Ask something to Gemini")
 @app_commands.allowed_contexts(
     guilds=True,
     dms=True,
     private_channels=True
 )
-async def ai(
-    interaction: discord.Interaction,
-    prompt: str
-):
+async def ai(interaction: discord.Interaction, prompt: str):
 
-    await interaction.response.defer()  # prevents timeout
+    user_id = interaction.user.id
+    current_time = time.time()
+
+    # 10 second cooldown
+    if user_id in cooldowns:
+        if current_time - cooldowns[user_id] < 10:
+            await interaction.response.send_message(
+                "⏳ Slow down gng, wait a few seconds before using this command again.",
+                ephemeral=True
+            )
+            return
+
+    cooldowns[user_id] = current_time
+
+    await interaction.response.defer()
 
     try:
         response = client.models.generate_content(
@@ -706,21 +720,27 @@ async def ai(
             )
             return
 
-        # Discord embed description limit = 4096 chars
         if len(text) > 4000:
             text = text[:4000] + "..."
 
         embed = discord.Embed(
-            title="🤖 Gemini AI",
             description=text,
             color=discord.Color.blurple()
         )
 
-        embed.set_footer(text="Gemini 2.0 Flash")
+        embed.set_footer(text="Result is AI Generated")
 
         await interaction.followup.send(embed=embed)
 
     except Exception as e:
+
+        if "429" in str(e):
+            await interaction.followup.send(
+                "⚠️ Gemini API quota exceeded. Try again later.",
+                ephemeral=True
+            )
+            return
+
         await interaction.followup.send(
             f"❌ Error: `{e}`",
             ephemeral=True
