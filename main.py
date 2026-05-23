@@ -4,11 +4,13 @@ from discord import app_commands
 
 from google import genai
 
+# import stuff
 import random
 import math
 import re
 import time
 
+# .env
 from dotenv import load_dotenv
 import os
 
@@ -16,6 +18,7 @@ load_dotenv()
 TOKEN = os.getenv("TOKEN") or ""
 KEY = os.getenv("GEMINI_API_KEY")
 
+# setup for AI
 client = genai.Client(api_key=KEY)
 MODEL = "gemini-2.5-flash"
 
@@ -77,7 +80,7 @@ async def roast(interaction: discord.Interaction, member: discord.User):
     name="info",
     description="Get information about the bot"
 )
-async def info(interaction: discord.Interaction):
+async def botinfo(interaction: discord.Interaction):
 
     embed = discord.Embed(
         title="🥭 Bot Information",
@@ -405,6 +408,30 @@ async def dadjoke(
 
 ##//-- ROLEPLAY COMMANDS --\\##
 
+#-- BLACKFLASH COMMAND --#
+@bot.tree.command(name="blackflash", description="Blackflash someone")
+@app_commands.allowed_contexts(
+    guilds=True,
+    dms=True,
+    private_channels=True
+)
+async def blackflash(
+    interaction: discord.Interaction,
+    user: discord.User
+):
+    gifs = [
+        "https://media.tenor.com/K4zh-8HS-GYAAAAC/satoru-gojo-gojo-satoru.gif",
+        "https://media.tenor.com/0EERvw7z2aEAAAAC/jjk-jjk-s2.gif",
+        "https://media.tenor.com/ADNBTnqIhZQAAAAC/jujutsu-kaisen-black-flash.gif",
+        "https://media.tenor.com/xVqvf-67fU4AAAAC/yuji-blackflash-yuji-vs-sukuna.gif"
+    ]
+    chosen = random.choice(gifs)
+    embed = discord.Embed(
+        description=f"{interaction.user.mention} just blackflashed {user.mention}! 🔮",
+        color=discord.Color.blurple()
+    )
+    embed.set_image(url=chosen)
+    await interaction.response.send_message(embed=embed)
 #-- SHOOT COMMAND --#
 
 @bot.tree.command(name="shoot", description="Shoot someone")
@@ -499,7 +526,7 @@ async def flip(
 
     embed = discord.Embed(
         title="🪙 Flipping a coin..",
-        description=f"It landed on {side}!",
+        description=f"The coin landed on {side}",
         color=discord.Color.blurple()
     )
     embed.set_image(url=gif)
@@ -525,7 +552,7 @@ async def dice(
         rolled = random.randint(1, sides)
     else:
         await interaction.response.send_message(
-            f"Can't roll a dice with less than 2 sides! {interaction.user.mention}"
+            f"Can't roll a dice with less than 2 sides {interaction.user.mention}"
         )
         return  # stop execution
 
@@ -574,7 +601,6 @@ async def calc(
         sanitized = sanitized.replace("^", "**")
 
         # Replace "n of x" with "n * x" (case-insensitive)
-        # e.g. "5 of 3", "5of3", "5 of3" → "5 * 3"
         sanitized = re.sub(r'(\d+(?:\.\d+)?)\s*of\s*(\d+(?:\.\d+)?)', r'\1 * \2', sanitized, flags=re.IGNORECASE)
 
         # Replace factorials: n! → math.factorial(n)
@@ -696,7 +722,7 @@ async def ai(interaction: discord.Interaction, prompt: str):
     if user_id in cooldowns:
         if current_time - cooldowns[user_id] < 10:
             await interaction.response.send_message(
-                "⏳ Slow down gng, wait a few seconds before using this command again.",
+                f"⏳ You are on cooldown, please wait. {interaction.user.mention}",
                 ephemeral=True
             )
             return
@@ -736,13 +762,19 @@ async def ai(interaction: discord.Interaction, prompt: str):
 
         if "429" in str(e):
             await interaction.followup.send(
-                "⚠️ Gemini API quota exceeded. Try again later.",
+                "⚠️ Gemini API quota exceeded. Try again later. (Error Code 429)",
                 ephemeral=True
             )
             return
         elif "503" in str(e):
             await interaction.followup.send(
-                "⚠️ Gemini is experiencing high demand at this moment. Please wait or try again later."
+                "⚠️ Gemini is experiencing high demand at this moment. Please wait or try again later. (Error Code 503)",
+                ephemeral=True
+            )
+        elif "500" in str(e):
+            await interaction.followup.send(
+                "⚠️ There was an internal error. (Error Code 500)",
+                ephemeral=True
             )
 
         await interaction.followup.send(
@@ -750,5 +782,22 @@ async def ai(interaction: discord.Interaction, prompt: str):
             ephemeral=True
         )
     
+#//-- INFORMATION COMMANDS --\\#
+@bot.tree.command(name="userinfo", description="Get information about a specific user")
+@app_commands.allowed_contexts(
+    guilds=True,
+    dms=True,
+    private_channels=True
+)
+async def info(
+    interaction: discord.Interaction,
+    user: discord.Interaction
+):
+    name = user.user.name
+    created_on = user.user.created_at
+    userid = user.user.id
 
+    embed = discord.Embed(
+
+    )
 bot.run(TOKEN)
