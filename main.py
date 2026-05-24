@@ -432,6 +432,7 @@ async def blackflash(
     )
     embed.set_image(url=chosen)
     await interaction.response.send_message(embed=embed)
+
 #-- SHOOT COMMAND --#
 
 @bot.tree.command(name="shoot", description="Shoot someone")
@@ -791,13 +792,48 @@ async def ai(interaction: discord.Interaction, prompt: str):
 )
 async def info(
     interaction: discord.Interaction,
-    user: discord.Interaction
+    user: discord.User
 ):
-    name = user.user.name
-    created_on = user.user.created_at
-    userid = user.user.id
+    # Fetch full user object to get banner, accent color, etc.
+    fetched_user = await bot.fetch_user(user.id)
+
+    name = user.name
+    display_name = user.display_name
+    created_on = discord.utils.format_dt(user.created_at, style="F")
+    created_relative = discord.utils.format_dt(user.created_at, style="R")
+    userid = user.id
+    avatar_url = user.display_avatar.url
+    is_bot = "Yes" if user.bot else "No"
+
+    # Accent/banner color
+    accent_color = fetched_user.accent_color or discord.Color.blurple()
 
     embed = discord.Embed(
-
+        title=f"{display_name}'s Info",
+        color=accent_color
     )
+
+    embed.set_thumbnail(url=avatar_url)
+
+    # If the user has a banner, show it
+    if fetched_user.banner:
+        embed.set_image(url=fetched_user.banner.url)
+
+    embed.add_field(name="Username", value=f"`{name}`", inline=True)
+    embed.add_field(name="Display Name", value=f"`{display_name}`", inline=True)
+    embed.add_field(name="Bot?", value=is_bot, inline=True)
+
+    embed.add_field(name="User ID", value=f"`{userid}`", inline=True)
+    embed.add_field(name="Account Created", value=f"{created_on}\n({created_relative})", inline=False)
+
+    embed.add_field(
+        name="Avatar URL",
+        value=f"[Click here]({avatar_url})",
+        inline=False
+    )
+
+    embed.set_footer(text=f"Requested by {interaction.user}", icon_url=interaction.user.display_avatar.url)
+
+    await interaction.response.send_message(embed=embed)
+
 bot.run(TOKEN)
