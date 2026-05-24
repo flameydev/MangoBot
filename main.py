@@ -836,4 +836,272 @@ async def info(
 
     await interaction.response.send_message(embed=embed)
 
+#//-- GAME COMMANDS --\\#
+
+PAIRS = [
+    (
+        "Get $10 Million instantly",
+        "Get $1 which doubles every day for a week (~$64)"
+    ),
+    (
+        "Know how you will spend the rest of your life",
+        "Know how your loved ones will die"
+    ),
+    (
+        "Never be able to eat your favourite food for the rest of your life",
+        "Study for 20 hours every day for a year"
+    ),
+    (
+        "Be able to fly but only at walking speed",
+        "Be invisible but only when no one is looking at you"
+    ),
+    (
+        "Speak every language fluently",
+        "Play every instrument perfectly"
+    ),
+    (
+        "Have unlimited money but never be able to leave your city",
+        "Travel the entire world but be completely broke"
+    ),
+    (
+        "Be the smartest person in the world but have no friends",
+        "Be surrounded by great friends but be of average intelligence"
+    ),
+    (
+        "Always have to say everything you are thinking",
+        "Never be able to speak again"
+    ),
+    (
+        "Live in a world without music",
+        "Live in a world without movies or TV"
+    ),
+    (
+        "Never use social media again",
+        "Never watch another movie or TV show again"
+    ),
+    (
+        "Have the ability to read minds but everyone can read yours too",
+        "Be able to teleport but only to places you have never been"
+    ),
+    (
+        "Fight 100 duck-sized horses",
+        "Fight 1 horse-sized duck"
+    ),
+    (
+        "Always be 10 minutes late",
+        "Always be 2 hours early"
+    ),
+    (
+        "Lose all your memories from birth to age 18",
+        "Lose all your memories from the last 5 years"
+    ),
+    (
+        "Have a rewind button for your life",
+        "Have a pause button for your life"
+    ),
+    (
+        "Be famous but hated by everyone",
+        "Be unknown but loved by everyone around you"
+    ),
+    (
+        "Only be able to eat sweet food for the rest of your life",
+        "Only be able to eat savoury food for the rest of your life"
+    ),
+    (
+        "Never feel physical pain again",
+        "Never feel emotional pain again"
+    ),
+    (
+        "Know the date of your death",
+        "Know the cause of your death"
+    ),
+    (
+        "Be able to talk to animals but they are all rude to you",
+        "Not be able to talk to animals but they all love you unconditionally"
+    ),
+    (
+        "Have free Wi-Fi wherever you go",
+        "Have free food wherever you go"
+    ),
+    (
+        "Spend a year in prison with your best friend",
+        "Spend a year alone in a luxury villa"
+    ),
+    (
+        "Always feel slightly too cold",
+        "Always feel slightly too hot"
+    ),
+    (
+        "Be able to stop time but age twice as fast while it's stopped",
+        "Live twice as long but never be able to stop time"
+    ),
+    (
+        "Have every dog in the world love you",
+        "Have every cat in the world love you"
+    ),
+    (
+        "Never be stuck in traffic again",
+        "Never wait in a queue again"
+    ),
+    (
+        "Forget who you are every time you fall asleep",
+        "Remember every bad memory in vivid detail forever"
+    ),
+    (
+        "Be able to breathe underwater",
+        "Be able to survive in outer space without a suit"
+    ),
+    (
+        "Only be able to communicate through song",
+        "Only be able to communicate through interpretive dance"
+    ),
+    (
+        "Have the power to heal others but not yourself",
+        "Have the power to heal yourself but not others"
+    ),
+    (
+        "Always know when someone is lying to you",
+        "Be able to lie without anyone ever detecting it"
+    ),
+    (
+        "Give up the internet for a year",
+        "Give up showering for 3 months"
+    ),
+    (
+        "Have your Google search history made public",
+        "Have every conversation you've ever had made public"
+    ),
+    (
+        "Wake up every day with no memory of the day before",
+        "Remember every single moment of your life in perfect detail"
+    ),
+    (
+        "Be 3 feet tall for the rest of your life",
+        "Be 8 feet tall for the rest of your life"
+    ),
+]
+
+
+def build_wyr_embeds(option_a: str, option_b: str) -> list[discord.Embed]:
+    """Return the two side-by-side embeds for a WYR question."""
+    embed_a = discord.Embed(
+        title="🔴  Option A",
+        description=f"### {option_a}",
+        color=discord.Color.red()
+    )
+    embed_b = discord.Embed(
+        title="🔵  Option B",
+        description=f"### {option_b}",
+        color=discord.Color.blue()
+    )
+    return [embed_a, embed_b]
+
+
+class WouldYouRatherView(discord.ui.View):
+    """
+    Persistent view that keeps asking WYR questions until:
+      • the invoking user clicks End Game, or
+      • 10 minutes of inactivity pass (timeout).
+    """
+
+    TIMEOUT_SECONDS = 600  # 10 minutes
+
+    def __init__(self, invoker: discord.User | discord.Member):
+        super().__init__(timeout=self.TIMEOUT_SECONDS)
+        self.invoker = invoker
+        self.scores: dict[str, int] = {"A": 0, "B": 0}  # track choices this session
+        self._pick_pair()
+
+    # ------------------------------------------------------------------ helpers
+
+    def _pick_pair(self) -> None:
+        """Choose a fresh random pair (avoids immediate repeats)."""
+        self.current_pair: tuple[str, str] = random.choice(PAIRS)
+
+    def _current_embeds(self) -> list[discord.Embed]:
+        return build_wyr_embeds(*self.current_pair)
+
+    def _result_embed(self) -> discord.Embed:
+        total = self.scores["A"] + self.scores["B"]
+        embed = discord.Embed(
+            title="Game Over 👋",
+            description=(
+                f"You answered **{total}** question(s).\n"
+                f"🔴 Option A chosen: **{self.scores['A']}** time(s)\n"
+                f"🔵 Option B chosen: **{self.scores['B']}** time(s)"
+            ),
+            color=discord.Color.greyple()
+        )
+        return embed
+
+    # ------------------------------------------------------------------ guard
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        """Only the person who started the game may press buttons."""
+        if interaction.user.id != self.invoker.id:
+            await interaction.response.send_message(
+                "⚠️ Only the person who started this game can interact with it.",
+                ephemeral=True
+            )
+            return False
+        return True
+
+    # ------------------------------------------------------------------ buttons
+
+    @discord.ui.button(label="Option A", style=discord.ButtonStyle.red, emoji="🔴")
+    async def button_a(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        self.scores["A"] += 1
+        self._pick_pair()
+        await interaction.response.edit_message(
+            embeds=self._current_embeds(), view=self
+        )
+
+    @discord.ui.button(label="Option B", style=discord.ButtonStyle.blurple, emoji="🔵")
+    async def button_b(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        self.scores["B"] += 1
+        self._pick_pair()
+        await interaction.response.edit_message(
+            embeds=self._current_embeds(), view=self
+        )
+
+    @discord.ui.button(label="End Game", style=discord.ButtonStyle.gray, emoji="🛑")
+    async def button_end(
+        self, interaction: discord.Interaction, button: discord.ui.Button
+    ):
+        self.stop()  # cancels the timeout too
+        await interaction.response.edit_message(
+            embeds=[self._result_embed()], view=None
+        )
+
+    # ------------------------------------------------------------------ timeout
+
+    async def on_timeout(self) -> None:
+        """Disable all buttons and show a timeout notice when inactive."""
+        for child in self.children:
+            child.disabled = True  # type: ignore[union-attr]
+
+        # Try to edit the original message to reflect timeout
+        try:
+            await self.message.edit(  # type: ignore[union-attr]
+                content="⏰ Game ended due to 10 minutes of inactivity.",
+                view=self
+            )
+        except discord.HTTPException:
+            pass
+
+
+@bot.tree.command(name="wouldyourather", description="Play a game of Would You Rather")
+@app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+async def wyr(interaction: discord.Interaction):
+    view = WouldYouRatherView(invoker=interaction.user)
+    # Store the message so on_timeout can edit it later
+    await interaction.response.send_message(
+        embeds=view._current_embeds(), view=view
+    )
+    view.message = await interaction.original_response() # type: ignore
+
 bot.run(TOKEN)
