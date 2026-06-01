@@ -747,119 +747,84 @@ PERSONAS = {
     },
 }
 
-# Persona select dropdown
-class PersonaSelect(discord.ui.Select):
-    def __init__(self):
-        options = [
-            discord.SelectOption(
-                label=data["name"],
-                value=key,
-                description=data["description"]
-            )
-            for key, data in PERSONAS.items()
-        ]
-        super().__init__(
-            placeholder="🎭 Choose a persona...",
-            min_values=1,
-            max_values=1,
-            options=options
+# Build persona choices for the slash command parameter
+PERSONA_CHOICES = [
+    app_commands.Choice(name=data["name"], value=key)
+    for key, data in PERSONAS.items()
+]
+
+
+async def run_ai(interaction: discord.Interaction, prompt: str, persona_key: str):
+    """Shared logic: call Gemini with the given persona and send the result publicly."""
+    persona = PERSONAS[persona_key]
+
+    try:
+        full_prompt = f"{persona['system_prompt']}\n\nUser: {prompt}"
+
+        response = client.models.generate_content(
+            model=MODEL,
+            contents=full_prompt
         )
 
-    async def callback(self, interaction: discord.Interaction):
-        await self.view.handle_persona_select(interaction, self.values[0]) #type: ignore
+        text = response.text
 
-
-class PersonaView(discord.ui.View):
-    def __init__(self, prompt: str, user_id: int):
-        super().__init__(timeout=30)
-        self.prompt = prompt
-        self.user_id = user_id
-        self.add_item(PersonaSelect())
-
-    async def interaction_check(self, interaction: discord.Interaction) -> bool:
-        if interaction.user.id != self.user_id:
-            await interaction.response.send_message(
-                "❌ This menu isn't for you.",
+        if not text:
+            await interaction.followup.send(
+                "❌ Gemini returned an empty response.",
                 ephemeral=True
             )
-            return False
-        return True
+            return
 
-    async def on_timeout(self):
-        # Disable the select on timeout
-        for item in self.children:
-            if hasattr(item, 'disabled'):
-                item.disabled = True #type: ignore
+        if len(text) > 4000:
+            text = text[:4000] + "..."
 
-    async def handle_persona_select(self, interaction: discord.Interaction, persona_key: str):
-        persona = PERSONAS[persona_key]
+        embed = discord.Embed(
+            description=text,
+            color=discord.Color.blurple()
+        )
 
-        await interaction.response.defer()
-
-        try:
-            full_prompt = f"{persona['system_prompt']}\n\nUser: {self.prompt}"
-
-            response = client.models.generate_content(
-                model=MODEL,
-                contents=full_prompt
-            )
-
-            text = response.text
-
-            if not text:
-                await interaction.followup.send(
-                    "❌ Gemini returned an empty response.",
-                    ephemeral=True
-                )
-                return
-
-            if len(text) > 4000:
-                text = text[:4000] + "..."
-
-            embed = discord.Embed(
-                description=text,
-                color=discord.Color.blurple()
-            )
+        if persona_key != "default":
             embed.set_author(name=f"Persona: {persona['name']}")
-            embed.set_footer(text="[ AI Generated response - Using Gemini 2.5 Flash - MangoBot /ai ]")
 
-            # Edit the original "pick a persona" message with the result
-            await interaction.edit_original_response(
-                content=None,
-                embed=embed,
-                view=None
+        embed.set_footer(text="[ AI Generated response - Using Gemini 2.5 Flash - MangoBot /ai ]")
+
+        await interaction.followup.send(embed=embed)
+
+    except Exception as e:
+        if "429" in str(e):
+            await interaction.followup.send(
+                "⚠️ Gemini API quota exceeded. Try again later. (Error Code 429)",
+                ephemeral=True
             )
-
-        except Exception as e:
-            if "429" in str(e):
-                await interaction.followup.send(
-                    "⚠️ Gemini API quota exceeded. Try again later. (Error Code 429)",
-                    ephemeral=True
-                )
-            elif "503" in str(e):
-                await interaction.followup.send(
-                    "⚠️ Gemini is experiencing high demand at this moment. Please wait or try again later. (Error Code 503)",
-                    ephemeral=True
-                )
-            elif "500" in str(e):
-                await interaction.followup.send(
-                    "⚠️ There was an internal error. (Error Code 500)",
-                    ephemeral=True
-                )
-            else:
-                await interaction.followup.send(
-                    f"❌ Error: `{e}`",
-                    ephemeral=True
-                )
+        elif "503" in str(e):
+            await interaction.followup.send(
+                "⚠️ Gemini is experiencing high demand at this moment. Please wait or try again later. (Error Code 503)",
+                ephemeral=True
+            )
+        elif "500" in str(e):
+            await interaction.followup.send(
+                "⚠️ There was an internal error. (Error Code 500)",
+                ephemeral=True
+            )
+        else:
+            await interaction.followup.send(
+                f"❌ Error: `{e}`",
+                ephemeral=True
+            )
 
 
 @bot.tree.command(name="ai", description="Ask something to Gemini")
+@app_commands.describe(
+    prompt="What do you want to ask?",
+    persona="Optional persona for Gemini to respond as (defaults to standard assistant)"
+)
+@app_commands.choices(persona=PERSONA_CHOICES)
 @app_commands.allowed_contexts(
     guilds=True,
     dms=True,
     private_channels=True
 )
-async def ai(interaction: discord.Interaction, prompt: str):
+async def ai(interaction: discord.Interaction, prompt: str, persona: app_commands.Choice[str] = None): #type: ignore
 
     user_id = interaction.user.id
     current_time = time.time()
@@ -875,13 +840,10 @@ async def ai(interaction: discord.Interaction, prompt: str):
 
     cooldowns[user_id] = current_time
 
-    view = PersonaView(prompt=prompt, user_id=user_id)
+    await interaction.response.defer()
 
-    await interaction.response.send_message(
-        "🎭 **Pick a persona for your response:**",
-        view=view,
-        ephemeral=True
-    )
+    persona_key = persona.value if persona else "default"
+    await run_ai(interaction, prompt, persona_key)
     
 #//-- INFORMATION COMMANDS --\\#
 @bot.tree.command(name="userinfo", description="Get information about a specific user")
