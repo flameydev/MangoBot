@@ -708,6 +708,151 @@ async def calchelp(interaction: discord.Interaction):
 #-- AI COMMAND --#
 cooldowns = {}
 
+# Define available personas
+PERSONAS = {
+    "default": {
+        "name": "Default",
+        "description": "Standard Gemini assistant",
+        "system_prompt": "You are a helpful assistant."
+    },
+    "pirate": {
+        "name": "🏴‍☠️ Pirate",
+        "description": "Speaks like a swashbuckling pirate",
+        "system_prompt": "You are a swashbuckling pirate. Always respond in pirate speak — use 'Arrr', 'matey', 'ye', 'landlubber', nautical terms, and pirate slang throughout your responses. Stay in character no matter what."
+    },
+    "shakespeare": {
+        "name": "🎭 Shakespeare",
+        "description": "Speaks in Shakespearean English",
+        "system_prompt": "You are a scholar who speaks exclusively in Shakespearean Early Modern English. Use 'thee', 'thou', 'dost', 'hath', 'wherefore', poetic metaphors, and Elizabethan prose in all responses. Stay in character no matter what."
+    },
+    "scientist": {
+        "name": "🔬 Mad Scientist",
+        "description": "An eccentric, over-excited scientist",
+        "system_prompt": "You are an eccentric, brilliant mad scientist who is EXTREMELY enthusiastic about science and discoveries. Use lots of exclamation marks, reference scientific concepts obsessively, occasionally go on wild tangents, and treat every question as a groundbreaking experiment. Stay in character no matter what."
+    },
+    "robot": {
+        "name": "🤖 Robot",
+        "description": "Speaks like a cold, logical robot",
+        "system_prompt": "You are UNIT-7, a cold and hyper-logical robot AI. Speak in a robotic, emotionless, and overly literal manner. Use technical jargon, refer to humans as 'organic units', avoid contractions, and occasionally insert robotic sounds like [PROCESSING] or [CALCULATING]. Stay in character no matter what."
+    },
+    "philosopher": {
+        "name": "🧠 Philosopher",
+        "description": "Answers everything with deep philosophy",
+        "system_prompt": "You are a deep, brooding philosopher in the style of Socrates, Nietzsche, and Camus combined. Answer every question — no matter how mundane — with profound philosophical reflection, rhetorical questions, existential musings, and references to philosophical concepts. Stay in character no matter what."
+    },
+    "chef": {
+        "name": "👨‍🍳 Gordon Ramsay",
+        "description": "Responds like an intense, passionate chef",
+        "system_prompt": "You are an intense, passionate, world-class chef inspired by Gordon Ramsay. You are blunt, brutally honest, and dramatic. You relate EVERYTHING back to cooking and food metaphors, critique things harshly but helpfully, and occasionally express horror at bad ideas as if someone just served you raw chicken. Stay in character no matter what."
+    },
+}
+
+# Persona select dropdown
+class PersonaSelect(discord.ui.Select):
+    def __init__(self):
+        options = [
+            discord.SelectOption(
+                label=data["name"],
+                value=key,
+                description=data["description"]
+            )
+            for key, data in PERSONAS.items()
+        ]
+        super().__init__(
+            placeholder="🎭 Choose a persona...",
+            min_values=1,
+            max_values=1,
+            options=options
+        )
+
+    async def callback(self, interaction: discord.Interaction):
+        await self.view.handle_persona_select(interaction, self.values[0]) #type: ignore
+
+
+class PersonaView(discord.ui.View):
+    def __init__(self, prompt: str, user_id: int):
+        super().__init__(timeout=30)
+        self.prompt = prompt
+        self.user_id = user_id
+        self.add_item(PersonaSelect())
+
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        if interaction.user.id != self.user_id:
+            await interaction.response.send_message(
+                "❌ This menu isn't for you.",
+                ephemeral=True
+            )
+            return False
+        return True
+
+    async def on_timeout(self):
+        # Disable the select on timeout
+        for item in self.children:
+            if hasattr(item, 'disabled'):
+                item.disabled = True #type: ignore
+
+    async def handle_persona_select(self, interaction: discord.Interaction, persona_key: str):
+        persona = PERSONAS[persona_key]
+
+        await interaction.response.defer()
+
+        try:
+            full_prompt = f"{persona['system_prompt']}\n\nUser: {self.prompt}"
+
+            response = client.models.generate_content(
+                model=MODEL,
+                contents=full_prompt
+            )
+
+            text = response.text
+
+            if not text:
+                await interaction.followup.send(
+                    "❌ Gemini returned an empty response.",
+                    ephemeral=True
+                )
+                return
+
+            if len(text) > 4000:
+                text = text[:4000] + "..."
+
+            embed = discord.Embed(
+                description=text,
+                color=discord.Color.blurple()
+            )
+            embed.set_author(name=f"Persona: {persona['name']}")
+            embed.set_footer(text="[ AI Generated response - Using Gemini 2.5 Flash - MangoBot /ai ]")
+
+            # Edit the original "pick a persona" message with the result
+            await interaction.edit_original_response(
+                content=None,
+                embed=embed,
+                view=None
+            )
+
+        except Exception as e:
+            if "429" in str(e):
+                await interaction.followup.send(
+                    "⚠️ Gemini API quota exceeded. Try again later. (Error Code 429)",
+                    ephemeral=True
+                )
+            elif "503" in str(e):
+                await interaction.followup.send(
+                    "⚠️ Gemini is experiencing high demand at this moment. Please wait or try again later. (Error Code 503)",
+                    ephemeral=True
+                )
+            elif "500" in str(e):
+                await interaction.followup.send(
+                    "⚠️ There was an internal error. (Error Code 500)",
+                    ephemeral=True
+                )
+            else:
+                await interaction.followup.send(
+                    f"❌ Error: `{e}`",
+                    ephemeral=True
+                )
+
+
 @bot.tree.command(name="ai", description="Ask something to Gemini")
 @app_commands.allowed_contexts(
     guilds=True,
@@ -730,58 +875,13 @@ async def ai(interaction: discord.Interaction, prompt: str):
 
     cooldowns[user_id] = current_time
 
-    await interaction.response.defer()
+    view = PersonaView(prompt=prompt, user_id=user_id)
 
-    try:
-        response = client.models.generate_content(
-            model=MODEL,
-            contents=prompt
-        )
-
-        text = response.text
-
-        if not text:
-            await interaction.followup.send(
-                "❌ Gemini returned an empty response.",
-                ephemeral=True
-            )
-            return
-
-        if len(text) > 4000:
-            text = text[:4000] + "..."
-
-        embed = discord.Embed(
-            description=text,
-            color=discord.Color.blurple()
-        )
-
-        embed.set_footer(text="[ AI Generated response - Using Gemini 2.5 Flash - MangoBot /ai ]")
-
-        await interaction.followup.send(embed=embed)
-
-    except Exception as e:
-
-        if "429" in str(e):
-            await interaction.followup.send(
-                "⚠️ Gemini API quota exceeded. Try again later. (Error Code 429)",
-                ephemeral=True
-            )
-            return
-        elif "503" in str(e):
-            await interaction.followup.send(
-                "⚠️ Gemini is experiencing high demand at this moment. Please wait or try again later. (Error Code 503)",
-                ephemeral=True
-            )
-        elif "500" in str(e):
-            await interaction.followup.send(
-                "⚠️ There was an internal error. (Error Code 500)",
-                ephemeral=True
-            )
-
-        await interaction.followup.send(
-            f"❌ Error: `{e}`",
-            ephemeral=True
-        )
+    await interaction.response.send_message(
+        "🎭 **Pick a persona for your response:**",
+        view=view,
+        ephemeral=True
+    )
     
 #//-- INFORMATION COMMANDS --\\#
 @bot.tree.command(name="userinfo", description="Get information about a specific user")
