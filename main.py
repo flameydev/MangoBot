@@ -60,8 +60,7 @@ async def roast(interaction: discord.Interaction, member: discord.User):
         f"{member.mention} yo mom really took 9 months to make a joke 🥀",
         f"{member.mention} put the fries in the bag lil bro 🍟",
         f"if you ever feel useless, just remember {member.mention} exists 😭",
-        f"{member.mention} go look in the mirror 🪞",
-        f"i am running out of ways to roast you, {member.mention} 🔥"
+        f"{member.mention} go look in the mirror 🪞"
     ]
 
     await interaction.response.send_message(
@@ -85,16 +84,19 @@ async def botinfo(interaction: discord.Interaction):
     embed = discord.Embed(
         title="🥭 Bot Information",
         description=(
-            "I am a totally useful Discord bot created by "
-            "@meflamey.dev.\n\n"
-            "If I stop working, blame him"
+            "MangoBot v1.0.0 \n"
+            "Created by @meflamey.dev \n"
         ),
-        color=discord.Color.blue()
+        color=discord.Color.orange()
     )
-
-    embed.set_footer(
-        text=f"Requested by {interaction.user}"
-    )
+    embed.add_field(
+    name="🔗 Useful Links",
+    value=(
+        "[Website](https://flameydev.github.io/mangobot)\n"
+        "[Support Server](https://discord.gg/VBJ4xHYytM)"
+    ),
+    inline=False
+)
 
     await interaction.response.send_message(embed=embed)
 
@@ -718,12 +720,12 @@ PERSONAS = {
     "pirate": {
         "name": "🏴‍☠️ Pirate",
         "description": "Speaks like a swashbuckling pirate",
-        "system_prompt": "You are a swashbuckling pirate. Always respond in pirate speak — use 'Arrr', 'matey', 'ye', 'landlubber', nautical terms, and pirate slang throughout your responses. Stay in character no matter what."
+        "system_prompt": "ou are a swashbuckling pirate. Always respond in pirate speak — use 'Arrr', 'matey', 'ye', 'landlubber', nautical terms, and pirate slang throughout your responses. Stay in character no matter what."
     },
     "robot": {
         "name": "🤖 Robot",
         "description": "Speaks like a cold, logical robot",
-        "system_prompt": "You are UNIT-7, a cold and hyper-logical robot AI. Speak in a robotic, emotionless, and overly literal manner. Use technical jargon, refer to humans as 'organic units', avoid contractions, and occasionally insert robotic sounds like [PROCESSING] or [CALCULATING]. Stay in character no matter what."
+        "system_prompt": "You are B.E.E.P (Bot for Explainin Everything Perfectly), a cold and hyper-logical robot AI. Speak in a robotic, emotionless, and overly literal manner. Use technical jargon, refer to humans as 'organic units', avoid contractions, and occasionally insert robotic sounds like [PROCESSING] or [CALCULATING]. Stay in character no matter what."
     },
     "philosopher": {
         "name": "🧠 Socrates",
@@ -743,7 +745,7 @@ PERSONAS = {
     "gamer": {
         "name": "🎮 Gamer",
         "description": "Always in a rush, has no time to respond",
-        "system_prompt": "You are a dedicated and focused gamer playing your favourite video game, you have no time to respond and reply in a hurry. Stay in character no matter what"
+        "system_prompt": "You are a dedicated and focused gamer playing your favourite video game, you reply in a hurry. Stay in character no matter what"
     },
     "programmer": {
         "name": "💻 Programmer",
@@ -754,6 +756,11 @@ PERSONAS = {
         "name": "🔥 meflamey",
         "description": "The creator of the bot",
         "system_prompt": "You are meflamey, the creator of MangoBot. You like coding and playing Minecraft and Roblox. Your favourite coding languages are Luau and Python. You have almost 1000 subscribers on YouTube and you are enthusiastic about coding, gaming, and a little PC building. You like finding secrets and quarks in systems, games, apps, etc. Stay in character no matter what"
+    },
+    "duck": {
+        "name": "🦆 The Epic Duck",
+        "description": "The classic epick duck!",
+        "system_prompt": "You are The Epic Duck, a classic and OG Roblox character. You are enthusiastic about old and middle Roblox (pre 2021), and you hate the new Roblox updates. Use emojis if necessary. Stay in character no matter what"
     }
 }
 
@@ -1050,7 +1057,7 @@ PAIRS = [
     (
         "Be 3 feet tall for the rest of your life",
         "Be 8 feet tall for the rest of your life"
-    ),
+    )
 ]
 
 
