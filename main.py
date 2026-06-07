@@ -1215,6 +1215,11 @@ def parse_time(time_str: str) -> int:
 
 
 @bot.tree.command(name="remind", description="Set a reminder")
+@app_commands.allowed_contexts(
+    guilds=True,
+    dms=True,
+    private_channels=True
+)
 async def remind(
     interaction: discord.Interaction,
     time: str,
