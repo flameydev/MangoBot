@@ -9,6 +9,7 @@ import random
 import math
 import re
 import time
+import asyncio
 
 # .env
 from dotenv import load_dotenv
@@ -1187,5 +1188,62 @@ async def wyr(interaction: discord.Interaction):
         embeds=view._current_embeds(), view=view
     )
     view.message = await interaction.original_response() # type: ignore
+
+#// REMIND COMMAND \\#
+TIME_REGEX = re.compile(
+    r"^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$"
+)
+
+def parse_time(time_str: str) -> int:
+    match = TIME_REGEX.match(time_str.lower())
+
+    if not match:
+        raise ValueError("Invalid time format")
+
+    hours, minutes, seconds = match.groups()
+
+    total = (
+        (int(hours) if hours else 0) * 3600 +
+        (int(minutes) if minutes else 0) * 60 +
+        (int(seconds) if seconds else 0)
+    )
+
+    if total <= 0:
+        raise ValueError("Time must be greater than 0")
+
+    return total
+
+
+@bot.tree.command(name="remind", description="Set a reminder")
+async def remind(
+    interaction: discord.Interaction,
+    time: str,
+    message: str
+):
+    try:
+        seconds = parse_time(time)
+    except ValueError:
+        await interaction.response.send_message(
+            "Invalid time! Example: `1h30m4s`",
+            ephemeral=True
+        )
+        return
+
+    await interaction.response.send_message(
+        f"⏰ I'll remind you in `{time}`!",
+        ephemeral=True
+    )
+
+    async def reminder():
+        await asyncio.sleep(seconds)
+
+        try:
+            await interaction.user.send(
+                f"{interaction.user.mention} you asked me to remind you: **{message}**"
+            )
+        except discord.Forbidden:
+            pass  # User has DMs disabled
+
+    bot.loop.create_task(reminder())
 
 bot.run(TOKEN)
