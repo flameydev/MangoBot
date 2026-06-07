@@ -10,6 +10,7 @@ import math
 import re
 import time
 import asyncio
+import tempfile
 
 # .env
 from dotenv import load_dotenv
@@ -1250,5 +1251,76 @@ async def remind(
             pass  # User has DMs disabled
 
     bot.loop.create_task(reminder())
+
+#// LUAU COMMAND \\#
+
+OWNER_ID = 1446779806447308852
+
+@bot.tree.command(name="luau", description="owner-only :)")
+@app_commands.describe(code="The Luau code to run")
+@app_commands.allowed_contexts(
+    guilds=True,
+    dms=True,
+    private_channels=True
+)
+async def luau(interaction: discord.Interaction, code: str):
+
+    # Owner check
+    if interaction.user.id != OWNER_ID:
+        await interaction.response.send_message(
+            "❌ This command is owner-only.",
+            ephemeral=True
+        )
+        return
+
+    # Character limit
+    if len(code) > 2500:
+        await interaction.response.send_message(
+            "❌ Code cannot exceed 2500 characters.",
+            ephemeral=True
+        )
+        return
+
+    await interaction.response.defer()
+
+    with tempfile.NamedTemporaryFile(
+        mode="w",
+        suffix=".luau",
+        delete=False
+    ) as f:
+        f.write(code)
+        file_path = f.name
+
+    try:
+        process = await asyncio.create_subprocess_exec(
+            "luau",
+            file_path,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE
+        )
+
+        stdout, stderr = await asyncio.wait_for(
+            process.communicate(),
+            timeout=5
+        )
+
+        output = stdout.decode() or stderr.decode() or "No output"
+
+        if len(output) > 1900:
+            output = output[:1900] + "\n..."
+
+        await interaction.followup.send(
+            f"```lua\n{output}\n```"
+        )
+
+    except asyncio.TimeoutError:
+        process.kill()
+        await interaction.followup.send(
+            "❌ Execution timed out (5s)"
+        )
+
+    finally:
+        if os.path.exists(file_path):
+            os.remove(file_path)
 
 bot.run(TOKEN)
