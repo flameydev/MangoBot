@@ -1268,7 +1268,7 @@ async def run(interaction: discord.Interaction, code: str):
     # Owner check
     if interaction.user.id != OWNER_ID:
         await interaction.response.send_message(
-            "❌ This command is owner-only.",
+            "❌ nice try buddy. 🤣",
             ephemeral=True
         )
         return
@@ -1276,7 +1276,7 @@ async def run(interaction: discord.Interaction, code: str):
     # Character limit
     if len(code) > 2500:
         await interaction.response.send_message(
-            "❌ Code cannot exceed 2500 characters.",
+            "❌ too long code gng",
             ephemeral=True
         )
         return
@@ -1324,7 +1324,7 @@ async def run(interaction: discord.Interaction, code: str):
     except asyncio.TimeoutError:
         process.kill()
         await interaction.followup.send(
-            "❌ Execution timed out (10s)"
+            "❌ timeout (10s)"
         )
 
     finally:
