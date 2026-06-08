@@ -1252,18 +1252,18 @@ async def remind(
 
     bot.loop.create_task(reminder())
 
-#// LUAU COMMAND \\#
+#// RUN COMMAND \\#
 
 OWNER_ID = 1446779806447308852
 
-@bot.tree.command(name="luau", description="owner-only :)")
-@app_commands.describe(code="The Luau code to run")
+@bot.tree.command(name="run", description="owner-only :)")
+@app_commands.describe(code="The Python code to run")
 @app_commands.allowed_contexts(
     guilds=True,
     dms=True,
     private_channels=True
 )
-async def luau(interaction: discord.Interaction, code: str):
+async def run(interaction: discord.Interaction, code: str):
 
     # Owner check
     if interaction.user.id != OWNER_ID:
@@ -1285,7 +1285,7 @@ async def luau(interaction: discord.Interaction, code: str):
 
     with tempfile.NamedTemporaryFile(
         mode="w",
-        suffix=".luau",
+        suffix=".py",
         delete=False
     ) as f:
         f.write(code)
@@ -1293,7 +1293,7 @@ async def luau(interaction: discord.Interaction, code: str):
 
     try:
         process = await asyncio.create_subprocess_exec(
-            "luau",
+            "python",
             file_path,
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE
@@ -1301,22 +1301,30 @@ async def luau(interaction: discord.Interaction, code: str):
 
         stdout, stderr = await asyncio.wait_for(
             process.communicate(),
-            timeout=5
+            timeout=10
         )
 
-        output = stdout.decode() or stderr.decode() or "No output"
+        output = stdout.decode()
+        errors = stderr.decode()
 
-        if len(output) > 1900:
-            output = output[:1900] + "\n..."
+        if errors and not output:
+            result = errors
+        elif errors:
+            result = output + "\n⚠️ stderr:\n" + errors
+        else:
+            result = output or "No output"
+
+        if len(result) > 1900:
+            result = result[:1900] + "\n..."
 
         await interaction.followup.send(
-            f"```lua\n{output}\n```"
+            f"```python\n{result}\n```"
         )
 
     except asyncio.TimeoutError:
         process.kill()
         await interaction.followup.send(
-            "❌ Execution timed out (5s)"
+            "❌ Execution timed out (10s)"
         )
 
     finally:
