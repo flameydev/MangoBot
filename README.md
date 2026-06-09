@@ -74,3 +74,5 @@ python-dotenv
 Now just simply zip the entire folder, and upload it to Discloud to make the Bot live.
 
 If you need to update the bot, make the edits on your computer and then upload the updated file in the "Commit" section for the Bot, it will automatically update the file.
+
+Sometimes it may not allow you to upload, update, or restart apps. In that case just try after some time or even remove and re-upload the app.
