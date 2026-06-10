@@ -779,13 +779,14 @@ PERSONA_CHOICES = [
 
 
 async def run_ai(interaction: discord.Interaction, prompt: str, persona_key: str):
-    """Shared logic: call Gemini with the given persona and send the result publicly."""
     persona = PERSONAS[persona_key]
 
     try:
         full_prompt = f"{persona['system_prompt']}\n\nUser: {prompt}"
 
-        response = client.models.generate_content(
+        # Run the blocking Gemini call in a thread so it doesn't freeze the bot
+        response = await asyncio.to_thread(
+            client.models.generate_content,
             model=MODEL,
             contents=full_prompt
         )
@@ -1268,7 +1269,7 @@ async def run(interaction: discord.Interaction, code: str):
     # Owner check
     if interaction.user.id != OWNER_ID:
         await interaction.response.send_message(
-            "❌ nice try buddy. 🤣",
+            "❌ no",
             ephemeral=True
         )
         return
