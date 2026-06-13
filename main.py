@@ -857,6 +857,8 @@ async def ai(interaction: discord.Interaction, prompt: str, persona: app_command
     await run_ai(interaction, prompt, persona_key)
     
 #//-- INFORMATION COMMANDS --\\#
+
+#-- USER INFO --#
 @bot.tree.command(name="userinfo", description="Get information about a specific user")
 @app_commands.allowed_contexts(
     guilds=True,
@@ -909,12 +911,66 @@ async def info(
 
     await interaction.response.send_message(embed=embed)
 
+#-- SERVER INFO --#
+@bot.tree.command(name="serverinfo", description="Get information about the server")
+@app_commands.allowed_contexts(
+    guilds=True,
+    dms=False,
+    private_channels=False
+)
+async def servinfo(
+    interaction: discord.Interaction
+):
+    guild = interaction.guild
+    if guild is None:
+        await interaction.response.send_message(
+            "This command can only be used in a server.", ephemeral=True
+        )
+        return
+
+    created_on = discord.utils.format_dt(guild.created_at, style="F")
+    created_relative = discord.utils.format_dt(guild.created_at, style="R")
+    guild_icon = guild.icon.url if guild.icon else None
+    guild_banner = guild.banner.url if guild.banner else None
+    accent_color = getattr(guild, "accent_color", None) or discord.Color.blurple()
+
+    embed = discord.Embed(
+        title=f"{guild.name} Server Info",
+        color=accent_color
+    )
+
+    if guild_icon:
+        embed.set_thumbnail(url=guild_icon)
+
+    if guild_banner:
+        embed.set_image(url=guild_banner)
+
+    embed.add_field(name="Server Name", value=f"`{guild.name}`", inline=True)
+    embed.add_field(name="Server ID", value=f"`{guild.id}`", inline=True)
+    embed.add_field(name="Owner", value=f"{guild.owner}", inline=True)
+    embed.add_field(name="Member Count", value=f"`{guild.member_count}`", inline=True)
+    embed.add_field(name="Roles", value=f"`{len(guild.roles)}`", inline=True)
+    embed.add_field(name="Channels", value=f"`{len(guild.channels)}`", inline=True)
+
+    if guild.description:
+        embed.add_field(name="Description", value=guild.description, inline=False)
+
+    embed.add_field(
+        name="Created",
+        value=f"{created_on}\n({created_relative})",
+        inline=False
+    )
+
+    embed.set_footer(text=f"Requested by {interaction.user}", icon_url=interaction.user.display_avatar.url)
+
+    await interaction.response.send_message(embed=embed)
+
 #//-- GAME COMMANDS --\\#
 
 PAIRS = [
     (
         "Get $10 Million instantly",
-        "Get $1 which doubles every day for a week (~$64)"
+        "Get $1 which doubles every day for 2 weeks."
     ),
     (
         "Know how you will spend the rest of your life",
@@ -1051,6 +1107,18 @@ PAIRS = [
     (
         "Be 3 feet tall for the rest of your life",
         "Be 8 feet tall for the rest of your life"
+    ),
+    (
+        "Never be able to contant your best friend again",
+        "Only be able to contact your best friend"
+    ),
+    (
+        "Never use YouTube again, but you get unlimited Nitro",
+        "Never use Discord again, but you get unlimited currency in any game"
+    ),
+    (
+        "Get access to the entire Steam library, but you can never play the games that you owned prior to it",
+        "Never play a new Steam game again, but you become the best at all the games you own"
     )
 ]
 
