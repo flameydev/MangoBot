@@ -1141,8 +1141,8 @@ def build_wyr_embeds(option_a: str, option_b: str) -> list[discord.Embed]:
 class WouldYouRatherView(discord.ui.View):
     """
     Persistent view that keeps asking WYR questions until:
-      • the invoking user clicks End Game, or
-      • 10 minutes of inactivity pass (timeout).
+      - the invoking user clicks End Game, or
+      - 10 minutes of inactivity pass (timeout).
     """
 
     TIMEOUT_SECONDS = 600  # 10 minutes
