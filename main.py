@@ -197,20 +197,6 @@ async def avatar(
 
     await interaction.response.send_message(embed=embed)
 
-#-- BEG COMMAND --#
-@app_commands.allowed_contexts(
-    guilds=True,
-    dms=True,
-    private_channels=True
-)
-@bot.tree.command(name="beg", description="Beg people to use the bot")
-async def beg(
-    interaction: discord.Interaction
-):
-    await interaction.response.send_message(
-        "Pls use MangoBot please: https://discord.com/oauth2/authorize?client_id=1505167456488915065&permissions=5066929756167745&integration_type=0&scope=bot"
-    )
-
 #-- LOVE PERCENTAGE --#
 @app_commands.allowed_contexts(
     guilds=True,
