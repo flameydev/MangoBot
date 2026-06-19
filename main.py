@@ -62,7 +62,9 @@ async def roast(interaction: discord.Interaction, member: discord.User):
         f"{member.mention} yo mom really took 9 months to make a joke 🥀",
         f"{member.mention} put the fries in the bag lil bro 🍟",
         f"if you ever feel useless, just remember {member.mention} exists 😭",
-        f"{member.mention} go look in the mirror 🪞"
+        f"{member.mention} go look in the mirror 🪞",
+        f"Internal Error: This guy {member.mention} is so stupid I can't think of a way to roast them. 🤖",
+        f"{member.mention} might be a clanker. 😂"
     ]
 
     await interaction.response.send_message(
@@ -781,7 +783,7 @@ async def run_ai(interaction: discord.Interaction, prompt: str, persona_key: str
 
         if not text:
             await interaction.followup.send(
-                "❌ Gemini returned an empty response.",
+                "❌ Gemini returned an empty response. Try rewording your prompt.",
                 ephemeral=True
             )
             return
@@ -1269,7 +1271,6 @@ def parse_time(time_str: str) -> int:
 
     return total
 
-
 @bot.tree.command(name="remind", description="Set a reminder")
 @app_commands.allowed_contexts(
     guilds=True,
@@ -1300,7 +1301,7 @@ async def remind(
 
         try:
             await interaction.user.send(
-                f"{interaction.user.mention} you asked me to remind you: **{message}**"
+                f"{interaction.user.mention} you asked me to remind you: \n **{message}**"
             )
         except discord.Forbidden:
             pass  # User has DMs disabled
