@@ -1,6 +1,8 @@
 # MangoBot
 
-Source code for my Discord bot. Feel free to make your own out of it!
+Source code for my Discord bot. Feel free to make your own bot with this.
+
+Half vibe-coded (sorry)
 
 ## Make your Own Bot
 
