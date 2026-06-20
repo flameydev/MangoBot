@@ -1395,18 +1395,19 @@ class Roblox(app_commands.Group):
     def __init__(self):
         super().__init__(
             name="roblox",
-            description="Roblox commands"
+            description="Roblox commands",
+            allowed_contexts=discord.app_commands.AppCommandContext(
+                guild=True,
+                dm_channel=True,
+                private_channel=True
+            )
         )
 
     @app_commands.command(
         name="user",
         description="Look up a Roblox user"
     )
-    @app_commands.allowed_contexts(
-        guilds=True,
-        dms=True,
-        private_channels=True
-    )
+    
     async def user(
         self,
         interaction: discord.Interaction,
