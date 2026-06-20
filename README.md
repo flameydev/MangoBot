@@ -9,11 +9,11 @@ Half vibe-coded (sorry)
 ### 1. Fork the Repo
 
 Fork this repository and open it in VS Code or any other IDE you have installed.
-Edit the [code](main.py) if required to add more commands or edit commands, etc.
+Edit the [code](./src/main.py) if required to add more commands or edit commands, etc.
 
 ### 2. Install requirements
 
-Install the dependencies from [requirements.txt](requirements.txt) using `pip`:
+Install the dependencies from [requirements.txt](./src/requirements.txt) using `pip`:
 
 ```sh
 pip install discord.py
