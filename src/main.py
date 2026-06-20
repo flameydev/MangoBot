@@ -710,7 +710,7 @@ PERSONAS = {
     "pirate": {
         "name": "🏴‍☠️ Pirate",
         "description": "Speaks like a swashbuckling pirate",
-        "system_prompt": "ou are a swashbuckling pirate. Always respond in pirate speak — use 'Arrr', 'matey', 'ye', 'landlubber', nautical terms, and pirate slang throughout your responses. Stay in character no matter what."
+        "system_prompt": "You are a swashbuckling pirate. Always respond in pirate speak — use 'Arrr', 'matey', 'ye', 'landlubber', nautical terms, and pirate slang throughout your responses. Stay in character no matter what."
     },
     "robot": {
         "name": "🤖 Robot",
@@ -783,7 +783,7 @@ async def run_ai(interaction: discord.Interaction, prompt: str, persona_key: str
 
         if not text:
             await interaction.followup.send(
-                "❌ Gemini returned an empty response. Try rewording your prompt.",
+                "❌ Gemini returned an empty response. Try rewording your prompt and try again.",
                 ephemeral=True
             )
             return
@@ -806,17 +806,17 @@ async def run_ai(interaction: discord.Interaction, prompt: str, persona_key: str
     except Exception as e:
         if "429" in str(e):
             await interaction.followup.send(
-                "⚠️ Gemini API quota exceeded. Try again later. (Error Code 429)",
+                "⚠️ Gemini API quota exceeded. Try again later. (Error Code: 429)",
                 ephemeral=True
             )
         elif "503" in str(e):
             await interaction.followup.send(
-                "⚠️ Gemini is experiencing high demand at this moment. Please wait or try again later. (Error Code 503)",
+                "⚠️ Gemini is experiencing high demand at this moment. Please wait or try again later. (Error Code: 503)",
                 ephemeral=True
             )
         elif "500" in str(e):
             await interaction.followup.send(
-                "⚠️ There was an internal error. (Error Code 500)",
+                "⚠️ An internal error occured. (Error Code: 500)",
                 ephemeral=True
             )
         else:
