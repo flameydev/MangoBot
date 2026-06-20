@@ -1402,6 +1402,11 @@ class Roblox(app_commands.Group):
         name="user",
         description="Look up a Roblox user"
     )
+    @app_commands.allowed_contexts(
+        guilds=True,
+        dms=True,
+        private_channels=True
+    )
     async def user(
         self,
         interaction: discord.Interaction,
