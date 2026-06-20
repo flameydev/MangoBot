@@ -89,7 +89,7 @@ async def botinfo(interaction: discord.Interaction):
     embed = discord.Embed(
         title="🥭 Bot Information",
         description=(
-            "MangoBot v1.0.0 \n"
+            "MangoBot v1.1.0 \n"
             "Created by @meflamey.dev \n"
         ),
         color=discord.Color.orange()
@@ -98,7 +98,8 @@ async def botinfo(interaction: discord.Interaction):
     name="🔗 Useful Links",
     value=(
         "[Website](https://flameydev.github.io/mangobot)\n"
-        "[Support Server](https://discord.gg/VBJ4xHYytM)"
+        "[Support Server](https://discord.gg/VBJ4xHYytM)\n"
+        "[Source Code](https://github.com/flameydev/MangoBot)"
     ),
     inline=False
 )
