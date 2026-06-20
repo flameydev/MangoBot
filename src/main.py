@@ -11,6 +11,7 @@ import re
 import time
 import asyncio
 import tempfile
+import aiohttp
 
 # .env
 from dotenv import load_dotenv
@@ -1386,5 +1387,108 @@ async def run(interaction: discord.Interaction, code: str):
     finally:
         if os.path.exists(file_path):
             os.remove(file_path)
+
+#// ROBLOX COMMANDS \\#
+
+class Roblox(app_commands.Group):
+    def __init__(self):
+        super().__init__(
+            name="roblox",
+            description="Roblox commands"
+        )
+
+    @app_commands.command(
+        name="user",
+        description="Look up a Roblox user"
+    )
+    async def user(
+        self,
+        interaction: discord.Interaction,
+        username: str
+    ):
+        await interaction.response.defer()
+
+        try:
+            async with aiohttp.ClientSession() as session:
+
+                # Username -> User ID
+                async with session.post(
+                    "https://users.roblox.com/v1/usernames/users",
+                    json={
+                        "usernames": [username],
+                        "excludeBannedUsers": False
+                    }
+                ) as resp:
+                    username_data = await resp.json()
+
+                if not username_data["data"]:
+                    await interaction.followup.send(
+                        "❌ User not found."
+                    )
+                    return
+
+                user = username_data["data"][0]
+                userid = user["id"]
+
+                # User info
+                async with session.get(
+                    f"https://users.roblox.com/v1/users/{userid}"
+                ) as resp:
+                    user_info = await resp.json()
+
+                # Avatar
+                async with session.get(
+                    "https://thumbnails.roblox.com/v1/users/avatar-headshot"
+                    f"?userIds={userid}&size=420x420&format=Png"
+                ) as resp:
+                    avatar_data = await resp.json()
+
+                avatar_url = avatar_data["data"][0]["imageUrl"]
+
+            embed = discord.Embed(
+                title=f"{user_info['displayName']} (@{user_info['name']})",
+                color=0x00A2FF
+            )
+
+            embed.add_field(
+                name="User ID",
+                value=user_info["id"],
+                inline=True
+            )
+
+            embed.add_field(
+                name="Created",
+                value=f"<t:{int(discord.utils.parse_time(user_info['created']).timestamp())}:F>",
+                inline=True
+            )
+
+            description = user_info.get("description")
+
+            if description:
+                embed.add_field(
+                    name="Description",
+                    value=description[:1024],
+                    inline=False
+                )
+
+            embed.set_thumbnail(url=avatar_url)
+
+            embed.url = f"https://www.roblox.com/users/{userid}/profile"
+
+            embed.set_footer(
+                text="Roblox User Lookup"
+            )
+
+            await interaction.followup.send(
+                embed=embed
+            )
+
+        except Exception as e:
+            await interaction.followup.send(
+                f"❌ Error: `{e}`"
+            )
+
+bot.tree.add_command(Roblox())
+
 
 bot.run(TOKEN)
