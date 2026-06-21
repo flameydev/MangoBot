@@ -1403,6 +1403,7 @@ class Roblox(app_commands.Group):
             )
         )
 
+    # /roblox user [username]
     @app_commands.command(
         name="user",
         description="Look up a Roblox user"
@@ -1494,6 +1495,31 @@ class Roblox(app_commands.Group):
             await interaction.followup.send(
                 f"❌ Error: `{e}`"
             )
+
+    # /roblox robuxtax [robux]
+    @app_commands.command(
+        name="robuxtax",
+        description="Calculate Robux tax"
+    )
+    async def calctax(
+        self,
+        interaction: discord.Interaction,
+        robux: int
+    ):
+        taxed = math.floor(robux * 0.7)
+        cover = math.ceil(robux / 0.7)
+
+        pls_taxed = math.floor(robux * 0.6)
+        pls_cover = math.ceil(robux / 0.6)
+        
+        await interaction.response.send_message(
+            f"Initial amount: `{robux}` R$ \n"
+            f"After tax (30%): `{taxed}` R$ \n"
+            f"Cost to cover tax: `{cover}` R$ \n"
+            f"## For Donation Games \n"
+            f"After tax (40%): `{pls_taxed}` R$ \n"
+            f"Cost to cover tax: `{pls_cover}` R$"
+        )
 
 bot.tree.add_command(Roblox())
 
