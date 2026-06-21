@@ -1513,12 +1513,12 @@ class Roblox(app_commands.Group):
         pls_cover = math.ceil(robux / 0.6)
         
         await interaction.response.send_message(
-            f"Initial amount: `{robux}` R$ \n"
-            f"After tax (30%): `{taxed}` R$ \n"
-            f"Cost to cover tax: `{cover}` R$ \n"
+            f"Initial amount: `{robux:,}` R$ \n"
+            f"After tax (30%): `{taxed:,}` R$ \n"
+            f"Cost to cover tax: `{cover:,}` R$ \n"
             f"## For Donation Games \n"
-            f"After tax (40%): `{pls_taxed}` R$ \n"
-            f"Cost to cover tax: `{pls_cover}` R$"
+            f"After tax (40%): `{pls_taxed:,}` R$ \n"
+            f"Cost to cover tax: `{pls_cover:,}` R$"
         )
 
 bot.tree.add_command(Roblox())
